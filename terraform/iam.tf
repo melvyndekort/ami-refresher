@@ -38,6 +38,43 @@ data "aws_iam_policy_document" "ami_refresher" {
       "*"
     ]
   }
+
+  statement {
+    actions = [
+      "ec2:ModifyLaunchTemplate",
+      "ec2:DeleteLaunchTemplateVersions",
+      "ec2:CreateLaunchTemplateVersion",
+    ]
+
+    resources = [
+      data.aws_launch_template.lmgateway-x86.arn,
+      data.aws_launch_template.lmgateway-arm.arn,
+    ]
+  }
+
+  statement {
+    actions = [
+      "ec2:DescribeInstances",
+      "ec2:TerminateInstances",
+      "ec2:DescribeLaunchTemplates",
+    ]
+
+    resources = [
+      "*"
+    ]
+  }
+
+  statement {
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes"
+    ]
+
+    resources = [ 
+      aws_sqs_queue.ami_updates_queue.arn,
+    ]
+  }
 }
 
 data "aws_iam_policy" "xray" {

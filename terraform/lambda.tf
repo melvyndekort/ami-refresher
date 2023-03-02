@@ -23,11 +23,10 @@ resource "aws_lambda_function" "ami_refresher" {
 
   layers = [
     "arn:aws:lambda:eu-west-1:901920570463:layer:aws-otel-python-amd64-ver-1-11-1:1",
-    "arn:aws:lambda:eu-west-1:015030872274:layer:AWS-Parameters-and-Secrets-Lambda-Extension:2",
   ]
 
   runtime       = "python3.9"
-  architectures = ["arm64"]
+  architectures = ["x86_64"]
   memory_size   = 128
   timeout       = 8
 
@@ -41,6 +40,8 @@ resource "aws_lambda_function" "ami_refresher" {
     variables = {
       AMI_PARAM_PATH_X86      = "/aws/service/ami-amazon-linux-latest/al2022-ami-minimal-kernel-default-x86_64"
       AMI_PARAM_PATH_ARM64    = "/aws/service/ami-amazon-linux-latest/al2022-ami-minimal-kernel-default-arm64"
+      TEMPLATE_ARN_X86        = data.aws_launch_template.lmgateway-x86.id
+      TEMPLATE_ARN_ARM        = data.aws_launch_template.lmgateway-arm.id
       AWS_LAMBDA_EXEC_WRAPPER = "/opt/otel-instrument"
     }
   }
@@ -53,7 +54,9 @@ resource "aws_lambda_function" "ami_refresher" {
 
 resource "aws_lambda_event_source_mapping" "ami_refresher" {
   event_source_arn = aws_sqs_queue.ami_updates_queue.arn
-  enabled          = true
   function_name    = aws_lambda_function.ami_refresher.arn
-  batch_size       = 1
+
+  depends_on = [
+    aws_iam_role.ami_refresher,
+  ]
 }
