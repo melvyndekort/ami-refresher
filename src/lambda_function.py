@@ -7,7 +7,6 @@ logger.setLevel(logging.INFO)
 
 ec2 = boto3.client('ec2')
 ssm = boto3.client('ssm')
-sns = boto3.client('sns')
 
 
 def lambda_handler(event, context):
@@ -101,11 +100,4 @@ def terminate_instances():
 
   ec2.terminate_instances(
     InstanceIds=instance_list
-  )
-
-def send_sns_notification(subject, message):
-  response = sns.publish(
-      TargetArn=sns_arn,
-      Message=message,
-      Subject=subject,
   )
